@@ -25,11 +25,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -73,6 +75,7 @@ import paulscode.android.mupen64plusae.game.GameDataManager;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.GamePrefs;
 import paulscode.android.mupen64plusae.persistent.GlobalPrefs;
+import paulscode.android.mupen64plusae.task.SyncToGoogleDriveService;
 import paulscode.android.mupen64plusae.util.CountryCode;
 import paulscode.android.mupen64plusae.util.FileUtil;
 import paulscode.android.mupen64plusae.util.PixelBuffer;
@@ -752,6 +755,9 @@ public class CoreService extends Service implements CoreInterface.OnFpsChangedLi
             //mCoreInterface.emuShutdown();
 
             mIsRunning = false;
+
+            // Sync to Google Drive
+            SyncToGoogleDriveService.syncToGoogleDrive(getApplicationContext(), mGamePrefs.getGameDataDirName(), mRomGoodName, mRomHeaderName);
 
             if(mListener != null)
             {
