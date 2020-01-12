@@ -67,9 +67,16 @@ android {
     }
 
     packagingOptions {
-        exclude 'META-INF/AL2.0'
         exclude 'META-INF/LGPL2.1'
-    }
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/AL2.0'
+        exclude 'META-INF/ASL2.0'    }
     compileOptions {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
@@ -93,6 +100,16 @@ dependencies {
         exclude group: 'net.java.dev.jna', module: 'jna'
     }
     implementation 'net.java.dev.jna:jna:5.5.0@aar'
+
+    implementation 'com.google.android.gms:play-services-auth:17.0.0'
+    implementation 'com.google.http-client:google-http-client-gson:1.26.0'
+    implementation('com.google.api-client:google-api-client-android:1.26.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+
     testImplementation 'junit:junit:4.12'
     implementation project(':mupen64plus-audio-sles')
     implementation project(':mupen64plus-core')
