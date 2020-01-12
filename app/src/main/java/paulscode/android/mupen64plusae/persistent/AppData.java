@@ -332,6 +332,9 @@ public class AppData
     /** Contex */
     private final Context mContext;
 
+    /** True if this is the pro version of the app */
+    public final boolean isPro;
+
     public static final String applicationPath = "mupen64plus-fz";
 
     /** Default legacy data path, needed for moving legacy data to internal storage */
@@ -423,6 +426,7 @@ public class AppData
                 intent.resolveActivity(context.getPackageManager()) == null);
 
         manufacturer = android.os.Build.MANUFACTURER;
+        isPro = context.getPackageName().equals("org.mupen64plusae.v3.fzurita.pro");
     }
 
     /**
