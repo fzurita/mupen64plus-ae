@@ -320,7 +320,7 @@ public class AppData
     /** The parent directory containing all user-writable data files. */
     public final String legacyGameDataDir;
 
-    public static final String applicationPath = "mupen64plus";
+    public static final String applicationPath = "mupen64plus-fz";
 
     /** Default legacy data path, needed for moving legacy data to internal storage */
     @SuppressWarnings({"deprecation", "RedundantSuppression"})
