@@ -405,7 +405,7 @@ public class AppData
         useLegacyFileBrowser = (isAndroidTv || Build.VERSION.SDK_INT <= Build.VERSION_CODES.O ||
                 intent.resolveActivity(context.getPackageManager()) == null) &&
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.R; // Android 11 fails this check but it requires the SAF file browser.
-        isPro = context.getPackageName().equals("org.mupen64plusae.v3.fzurita.pro");
+        isPro = context.getPackageName().startsWith("org.mupen64plusae.v3.fzurita.pro");
     }
 
     /**
