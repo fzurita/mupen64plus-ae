@@ -324,6 +324,9 @@ public class AppData
     /** The parent directory containing all user-writable data files. */
     public final String legacyGameDataDir;
 
+    /** True if this is the pro version of the app */
+    public final boolean isPro;
+
     public static final String applicationPath = "mupen64plus-fz";
 
     /** Default legacy data path, needed for moving legacy data to internal storage */
@@ -404,6 +407,8 @@ public class AppData
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         useLegacyFileBrowser = isAndroidTv || Build.VERSION.SDK_INT <= Build.VERSION_CODES.O ||
                 intent.resolveActivity(context.getPackageManager()) == null;
+
+        isPro = context.getPackageName().equals("org.mupen64plusae.v3.fzurita.pro");
     }
 
     /**
