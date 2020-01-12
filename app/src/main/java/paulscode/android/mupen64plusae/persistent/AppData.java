@@ -408,7 +408,7 @@ public class AppData
         useLegacyFileBrowser = isAndroidTv || Build.VERSION.SDK_INT <= Build.VERSION_CODES.O ||
                 intent.resolveActivity(context.getPackageManager()) == null;
 
-        isPro = context.getPackageName().equals("org.mupen64plusae.v3.fzurita.pro");
+        isPro = context.getPackageName().startsWith("org.mupen64plusae.v3.fzurita.pro");
     }
 
     /**
