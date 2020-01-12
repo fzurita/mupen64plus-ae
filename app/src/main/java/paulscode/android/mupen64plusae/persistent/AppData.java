@@ -327,6 +327,9 @@ public class AppData
     /** Contex */
     private final Context mContext;
 
+    /** True if this is the pro version of the app */
+    public final boolean isPro;
+
     public static final String applicationPath = "mupen64plus-fz";
 
     /** Default legacy data path, needed for moving legacy data to internal storage */
@@ -413,6 +416,7 @@ public class AppData
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.R; // Android 11 fails this check but it requires the SAF file browser.
 
         manufacturer = android.os.Build.MANUFACTURER;
+        isPro = context.getPackageName().equals("org.mupen64plusae.v3.fzurita.pro");
     }
 
     /**
