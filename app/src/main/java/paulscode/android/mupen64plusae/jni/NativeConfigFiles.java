@@ -22,6 +22,8 @@ package paulscode.android.mupen64plusae.jni;
 
 import android.util.Log;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.zip.GZIPInputStream;
 
+import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.GLideN64Prefs;
@@ -104,6 +107,11 @@ class NativeConfigFiles
         mupen64plus_cfg.put( "Core", "SharedDataPath", '"' + appData.coreSharedDataDir + '"' );
         mupen64plus_cfg.put( "Core", "CountPerOp", String.valueOf( game.countPerOp ) );
         mupen64plus_cfg.put( "Core", "CurrentStateSlot", String.valueOf(game.currentStateSlot));
+
+        FirebaseCrashlytics.getInstance().setCustomKey("R4300Emulator", game.r4300Emulator);
+        FirebaseCrashlytics.getInstance().setCustomKey("DisableExtraMem", boolToTF(game.disableExpansionPak));
+        FirebaseCrashlytics.getInstance().setCustomKey("SaveSRAMPath", '"' + game.getSramDataDir() + '"');
+        FirebaseCrashlytics.getInstance().setCustomKey("CountPerOp", String.valueOf( game.countPerOp ));
 
         mupen64plus_cfg.put( "CoreEvents", "Version", "1.000000" );
         mupen64plus_cfg.put( "CoreEvents", "Kbd Mapping Stop", EMPTY );

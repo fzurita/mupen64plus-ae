@@ -684,7 +684,9 @@ public class GalleryActivity extends AppCompatActivity implements GameSidebarAct
         case R.id.menuItem_refreshRoms:
             Intent intent = new Intent(this, ScanRomsActivity.class);
             startActivityForResult( intent, SCAN_ROM_REQUEST_CODE );
-            return true;
+
+            throw new RuntimeException("This is a crash");
+            //return true;
         case R.id.menuItem_categoryLibrary:
             tagForRefreshNeeded();
             ActivityHelper.startLibraryPrefsActivity( this );
