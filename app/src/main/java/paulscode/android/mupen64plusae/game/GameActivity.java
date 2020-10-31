@@ -57,6 +57,9 @@ import android.view.WindowManager.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import org.mupen64plusae.v3.alpha.R;
 
 import java.io.File;
@@ -66,6 +69,7 @@ import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.DrawerDrawable;
 import paulscode.android.mupen64plusae.GameSidebar;
 import paulscode.android.mupen64plusae.GameSidebar.GameSidebarActionHandler;
+import paulscode.android.mupen64plusae.cheat.CheatUtils;
 import paulscode.android.mupen64plusae.dialog.ConfirmationDialog.PromptConfirmListener;
 import paulscode.android.mupen64plusae.dialog.Prompt;
 import paulscode.android.mupen64plusae.input.PeripheralController;
@@ -79,6 +83,7 @@ import paulscode.android.mupen64plusae.input.provider.KeyProvider.ImeFormula;
 import paulscode.android.mupen64plusae.jni.CoreFragment;
 import paulscode.android.mupen64plusae.jni.CoreFragment.CoreEventListener;
 import paulscode.android.mupen64plusae.jni.CoreInterface.OnFpsChangedListener;
+import paulscode.android.mupen64plusae.jni.CoreTypes;
 import paulscode.android.mupen64plusae.persistent.AppData;
 import paulscode.android.mupen64plusae.persistent.GamePrefs;
 import paulscode.android.mupen64plusae.persistent.GlobalPrefs;
@@ -235,6 +240,8 @@ public class GameActivity extends AppCompatActivity implements PromptConfirmList
         super.onCreate(savedInstanceState);
         super.setTheme( androidx.appcompat.R.style.Theme_AppCompat_NoActionBar );
 
+        FirebaseApp.initializeApp(getApplicationContext());
+
         mAppData = new AppData( this );
 
         // Initialize the objects and data files interfacing to the emulator core
@@ -288,6 +295,8 @@ public class GameActivity extends AppCompatActivity implements PromptConfirmList
 
         mGamePrefs = new GamePrefs( this, mRomMd5, mRomCrc, mRomHeaderName, mRomGoodName,
             CountryCode.getCountryCode(mRomCountryCode).toString(), mAppData, mGlobalPrefs );
+
+        fillCrashlyticsKeys();
 
         final Window window = this.getWindow();
 
@@ -435,6 +444,44 @@ public class GameActivity extends AppCompatActivity implements PromptConfirmList
 
         if(mGlobalPrefs.touchscreenAutoHideEnabled)
             mHandler.postDelayed(mPeriodicChecker, 500);
+    }
+
+    private void fillCrashlyticsKeys()
+    {
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_PATH", mRomPath);
+        FirebaseCrashlytics.getInstance().setCustomKey("ZIP_PATH", mZipPath);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_MD5", mRomMd5);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_CRC", mRomCrc);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_HEADER_NAME", mRomHeaderName);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_COUNTRY_CODE", mRomCountryCode);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_ART_PATH", mRomArtPath);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_GOOD_NAME", mRomGoodName);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_DISPLAY_NAME", mRomDisplayName);
+        FirebaseCrashlytics.getInstance().setCustomKey("DO_RESTART", mDoRestart);
+        FirebaseCrashlytics.getInstance().setCustomKey("R4300Emulator", mGamePrefs.r4300Emulator);
+        FirebaseCrashlytics.getInstance().setCustomKey("DisableExtraMem", mGamePrefs.disableExpansionPak);
+        FirebaseCrashlytics.getInstance().setCustomKey("SaveSRAMPath", mGamePrefs.getSramDataDir());
+        FirebaseCrashlytics.getInstance().setCustomKey("CountPerOp", mGamePrefs.countPerOp);
+        FirebaseCrashlytics.getInstance().setCustomKey("video plugin", mGamePrefs.videoPluginLib.getPluginLib());
+        FirebaseCrashlytics.getInstance().setCustomKey("audio plugin", mGamePrefs.audioPluginLib.getPluginLib());
+        FirebaseCrashlytics.getInstance().setCustomKey("rsp plugin", mGamePrefs.rspPluginLib.getPluginLib());
+
+        if (mGlobalPrefs.useRaphnetDevicesIfAvailable) {
+            FirebaseCrashlytics.getInstance().setCustomKey("input plugin", AppData.InputPlugin.RAPHNET.getPluginLib());
+        } else {
+            FirebaseCrashlytics.getInstance().setCustomKey("input plugin", AppData.InputPlugin.ANDROID.getPluginLib());
+        }
+
+        if (TextUtils.isEmpty(mZipPath)) {
+
+            if (mGlobalPrefs.japanIplPath != null) {
+                FirebaseCrashlytics.getInstance().setCustomKey("DD ROM", mGlobalPrefs.japanIplPath);
+            }
+            FirebaseCrashlytics.getInstance().setCustomKey("DD Disk", mRomPath);
+        } else {
+            FirebaseCrashlytics.getInstance().setCustomKey("DD ROM", mGamePrefs.idlPath64Dd);
+            FirebaseCrashlytics.getInstance().setCustomKey("DD DISK", mGamePrefs.diskPath64Dd);
+        }
     }
 
     @Override
