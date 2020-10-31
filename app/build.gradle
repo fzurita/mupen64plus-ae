@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'signing'
 apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 apply from: '../build_common/version_common.gradle'
 
 android {
@@ -37,6 +38,11 @@ android {
             ndk {
                 debugSymbolLevel 'FULL'
             }
+            firebaseCrashlytics {
+                nativeSymbolUploadEnabled true
+                strippedNativeLibsDir "build/intermediates/stripped_native_libs/freeRelease/out/lib"
+                unstrippedNativeLibsDir "build/intermediates/merged_native_libs/freeRelease/out/lib"
+            }
         }
         debug {
             minifyEnabled true
@@ -46,8 +52,16 @@ android {
             ndk {
                 debugSymbolLevel 'FULL'
             }
+            firebaseCrashlytics {
+                nativeSymbolUploadEnabled true
+                strippedNativeLibsDir "build/intermediates/stripped_native_libs/freeDebug/out/lib"
+                unstrippedNativeLibsDir "build/intermediates/merged_native_libs/freeDebug/out/lib"
+            }
         }
     }
+
+    // Upload Crashlytics NDK symbols
+    tasks.whenTaskAdded { task -> if (task.name.startsWith('assemble') && task.name.endsWith("Release")) task.finalizedBy "uploadCrashlyticsSymbolFile" + task.name.substring('assemble'.length()) }
 
     flavorDimensions "version"
     productFlavors {
@@ -114,7 +128,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation platform('com.google.firebase:firebase-bom:25.12.0')
+    implementation platform('com.google.firebase:firebase-bom:26.0.0')
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'androidx.tvprovider:tvprovider:1.0.0'
     implementation 'androidx.multidex:multidex:2.0.1'
@@ -140,6 +154,7 @@ dependencies {
     implementation('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+    implementation 'com.google.firebase:firebase-crashlytics-ndk'
     implementation 'com.google.firebase:firebase-analytics'
 
     testImplementation 'junit:junit:4.12'
