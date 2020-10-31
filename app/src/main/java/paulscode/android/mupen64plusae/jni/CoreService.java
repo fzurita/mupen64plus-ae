@@ -56,6 +56,7 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.documentfile.provider.DocumentFile;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import org.mupen64plusae.v3.alpha.R;
 
@@ -622,6 +623,7 @@ public class CoreService extends Service implements CoreInterface.OnFpsChangedLi
                         ArrayList<CoreTypes.m64p_cheat_code> cheats = getCheat(cheatText, selection.getOption());
                         if (!cheats.isEmpty()) {
                             mCoreInterface.coreAddCheat(cheatText.name, cheats);
+                            FirebaseCrashlytics.getInstance().setCustomKey("Cheat" + selection.getIndex(), cheatText.name);
                         }
                     }
                 }
