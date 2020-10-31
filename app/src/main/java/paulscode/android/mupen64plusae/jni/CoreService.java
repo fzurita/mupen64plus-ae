@@ -58,6 +58,8 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.Surface;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import org.mupen64plusae.v3.alpha.R;
 
 import java.io.BufferedReader;
@@ -517,11 +519,19 @@ public class CoreService extends Service implements CoreInterface.OnFpsChangedLi
                 if (isNdd) {
                     mCoreInterface.setDdRomPath(getApplicationContext(), mGlobalPrefs.japanIplPath);
                     mCoreInterface.setDdDiskPath(getApplicationContext(), mRomPath);
+
+                    if (mGlobalPrefs.japanIplPath != null) {
+                        FirebaseCrashlytics.getInstance().setCustomKey("DD ROM", mGlobalPrefs.japanIplPath);
+                    }
+                    FirebaseCrashlytics.getInstance().setCustomKey("DD Disk", mRomPath);
                 }
             }
             else {
                 mCoreInterface.setDdRomPath(getApplicationContext(), mGamePrefs.idlPath64Dd);
                 mCoreInterface.setDdDiskPath(getApplicationContext(), mGamePrefs.diskPath64Dd);
+
+                FirebaseCrashlytics.getInstance().setCustomKey("DD ROM", mGamePrefs.idlPath64Dd);
+                FirebaseCrashlytics.getInstance().setCustomKey("DD DISK", mGamePrefs.diskPath64Dd);
             }
 
             mCoreInterface.coreStartup(mGamePrefs.getCoreUserConfigDir(), null, mGlobalPrefs.coreUserDataDir,
@@ -569,21 +579,27 @@ public class CoreService extends Service implements CoreInterface.OnFpsChangedLi
                         ArrayList<CoreTypes.m64p_cheat_code> cheats = getCheat(cheatText, selection.getOption());
                         if (!cheats.isEmpty()) {
                             mCoreInterface.coreAddCheat(cheatText.name, cheats);
+                            FirebaseCrashlytics.getInstance().setCustomKey("Cheat", cheatText.name);
                         }
                     }
                 }
 
                 // Attach all the plugins
                 mCoreInterface.coreAttachPlugin(CoreTypes.m64p_plugin_type.M64PLUGIN_GFX, mGamePrefs.videoPluginLib.getPluginLib());
+                FirebaseCrashlytics.getInstance().setCustomKey("video plugin", mGamePrefs.videoPluginLib.getPluginLib());
                 mCoreInterface.coreAttachPlugin(CoreTypes.m64p_plugin_type.M64PLUGIN_AUDIO, mGamePrefs.audioPluginLib.getPluginLib());
+                FirebaseCrashlytics.getInstance().setCustomKey("audio plugin", mGamePrefs.audioPluginLib.getPluginLib());
 
                 if (mUseRaphnetDevicesIfAvailable) {
                     mCoreInterface.coreAttachPlugin(CoreTypes.m64p_plugin_type.M64PLUGIN_INPUT, AppData.InputPlugin.RAPHNET.getPluginLib());
+                    FirebaseCrashlytics.getInstance().setCustomKey("input plugin", AppData.InputPlugin.RAPHNET.getPluginLib());
                 } else {
                     mCoreInterface.coreAttachPlugin(CoreTypes.m64p_plugin_type.M64PLUGIN_INPUT, AppData.InputPlugin.ANDROID.getPluginLib());
+                    FirebaseCrashlytics.getInstance().setCustomKey("input plugin", AppData.InputPlugin.ANDROID.getPluginLib());
                 }
 
                 mCoreInterface.coreAttachPlugin(CoreTypes.m64p_plugin_type.M64PLUGIN_RSP, mGamePrefs.rspPluginLib.getPluginLib());
+                FirebaseCrashlytics.getInstance().setCustomKey("rsp plugin", mGamePrefs.rspPluginLib.getPluginLib());
 
                 // This call blocks until emulation is stopped
                 mCoreInterface.emuStart();

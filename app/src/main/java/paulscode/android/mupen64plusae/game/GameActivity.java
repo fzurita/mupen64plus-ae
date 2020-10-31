@@ -56,6 +56,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 
 import com.bda.controller.Controller;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import org.mupen64plusae.v3.alpha.R;
 
@@ -237,6 +239,8 @@ public class GameActivity extends AppCompatActivity implements PromptConfirmList
         super.onCreate(savedInstanceState);
         super.setTheme( androidx.appcompat.R.style.Theme_AppCompat_NoActionBar );
 
+        FirebaseApp.initializeApp(getApplicationContext());
+
         mAppData = new AppData( this );
 
         mMogaController = Controller.getInstance( this );
@@ -279,6 +283,17 @@ public class GameActivity extends AppCompatActivity implements PromptConfirmList
         mDoRestart = extras.getBoolean( ActivityHelper.Keys.DO_RESTART, false );
         if( TextUtils.isEmpty( mRomPath ) || TextUtils.isEmpty( mRomMd5 ) )
             finish();
+
+        // Crashlytics stuff
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_PATH", mRomPath);
+        FirebaseCrashlytics.getInstance().setCustomKey("ZIP_PATH", mZipPath);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_MD5", mRomMd5);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_CRC", mRomCrc);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_HEADER_NAME", mRomHeaderName);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_COUNTRY_CODE", mRomCountryCode);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_ART_PATH", mRomArtPath);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_GOOD_NAME", mRomGoodName);
+        FirebaseCrashlytics.getInstance().setCustomKey("ROM_DISPLAY_NAME", mDoRestart);
 
         // Initialize MOGA controller API
         MogaHack.init( mMogaController, this );
