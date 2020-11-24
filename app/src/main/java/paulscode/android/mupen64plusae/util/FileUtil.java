@@ -164,6 +164,21 @@ public final class FileUtil
             return pathname != null && pathname.isDirectory();
         }
     }
+
+    /**
+     * Deletes a given folder directory in the form of a {@link DocumentFile }
+     *
+     * @param folder The folder to delete.
+     */
+    public static void deleteFolder(DocumentFile folder) {
+        if (folder.exists() && folder.isDirectory() && folder.listFiles() != null)
+            for (DocumentFile child : folder.listFiles())
+                deleteFolder(child);
+
+        if (!folder.delete()) {
+            Log.w("deleteFolder", "Couldn't delete " + folder.getUri().toString());
+        }
+    }
     
     /**
      * Deletes a given folder directory in the form of a {@link File}
