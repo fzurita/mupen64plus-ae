@@ -758,7 +758,9 @@ public class CoreService extends Service implements CoreInterface.OnFpsChangedLi
             mIsRunning = false;
 
             // Sync to Google Drive
-            SyncToGoogleDriveService.syncToGoogleDrive(getApplicationContext(), mGamePrefs.getGameDataDirName(), mRomGoodName, mRomHeaderName);
+            if (mGlobalPrefs.backupToGoogleDrive) {
+                SyncToGoogleDriveService.syncToGoogleDrive(getApplicationContext(), mGamePrefs.getGameDataDirName(), mRomGoodName, mRomHeaderName, false);
+            }
 
             if(mListener != null)
             {
