@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -50,12 +51,17 @@ import org.mupen64plusae.v3.alpha.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.dialog.ProgressDialog;
 import paulscode.android.mupen64plusae.persistent.AppData;
+import paulscode.android.mupen64plusae.persistent.ConfigFile;
 import paulscode.android.mupen64plusae.persistent.DataPrefsActivity;
+import paulscode.android.mupen64plusae.persistent.GamePrefs;
 import paulscode.android.mupen64plusae.persistent.GlobalPrefs;
+import paulscode.android.mupen64plusae.util.CountryCode;
 import paulscode.android.mupen64plusae.util.DriveServiceHelper;
 import paulscode.android.mupen64plusae.util.FileUtil;
 import paulscode.android.mupen64plusae.util.GoogleDriveFileHolder;
@@ -73,6 +79,44 @@ public class DownloadFromGoogleDriveService extends Service
 
     private AppData mAppData = null;
     private GlobalPrefs mGlobalPrefs = null;
+
+    String mRomMd5;
+    String mRomCrc;
+    String mRomHeaderName;
+    String mRomGoodName;
+    byte mRomCountryCode;
+    ConfigFile mConfig;
+
+    static class GameDownloadItem {
+        final String gameDir1;
+        final String gameDir2;
+        final String romGoodName;
+        final String romHeader;
+
+        GameDownloadItem(String gameDir1, String gameDir2, String romGoodName, String romHeader) {
+            this.gameDir1 = gameDir1;
+            this.gameDir2 = gameDir2;
+            this.romGoodName = romGoodName;
+            this.romHeader = romHeader;
+        }
+
+        boolean isSimilar(String fileName) {
+            return gameDir1.equals(fileName) ||
+                    gameDir2.equals(fileName) ||
+                    fileName.startsWith(romGoodName) ||
+                    fileName.startsWith(romHeader);
+        }
+    }
+
+    boolean containsSimlar(List<GameDownloadItem> items, String fileName) {
+        for (GameDownloadItem item : items) {
+            if (item.isSimilar(fileName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     final static int ONGOING_NOTIFICATION_ID = 1;
     final static String NOTIFICATION_CHANNEL_ID = "CopyFilesServiceChannel";
@@ -100,7 +144,7 @@ public class DownloadFromGoogleDriveService extends Service
         }
     }
 
-    private DocumentFile getExternalGameFolder()
+    private DocumentFile getExternalParentGameFolder()
     {
         if (TextUtils.isEmpty(mGlobalPrefs.externalFileStoragePath)) {
             return null;
@@ -108,7 +152,7 @@ public class DownloadFromGoogleDriveService extends Service
         return FileUtil.getDocumentFileTree(getApplicationContext(), Uri.parse(mGlobalPrefs.externalFileStoragePath));
     }
 
-    private DocumentFile getInternalGameFolder()
+    private DocumentFile getInternalParentGameFolder()
     {
         File gameDataFolder = new File(mAppData.gameDataDir).getParentFile();
         return FileUtil.getDocumentFileTree(getApplicationContext(), Uri.fromFile(gameDataFolder));
@@ -128,16 +172,58 @@ public class DownloadFromGoogleDriveService extends Service
 
             GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
 
-            if (GoogleSignIn.hasPermissions(account, driveFileScope, emailScope)) {
+            boolean singleGame = mRomMd5 != null && mRomCrc != null && mRomHeaderName != null &&
+                    mRomGoodName != null;
+            boolean allData = mRomMd5 == null && mRomCrc == null && mRomHeaderName == null &&
+                    mRomGoodName == null;
+
+            List<GameDownloadItem> downloadItems = new ArrayList<>();
+
+            if (allData) {
+
+                for ( final String md5 : mConfig.keySet() ) {
+                    if (!ConfigFile.SECTIONLESS_NAME.equals(md5)) {
+
+                        String crc = mConfig.get( md5, "crc" );
+                        String headerName = mConfig.get( md5, "headerName" );
+                        String goodName = mConfig.get(md5, "goodName");
+                        String countryCode = mConfig.get(md5, "countryCode");
+
+                        if (crc != null && headerName != null && goodName != null && countryCode != null) {
+                            CountryCode countryCodeEnum = CountryCode.getCountryCode(Byte.parseByte(countryCode));
+
+                            GamePrefs gamePrefs = new GamePrefs(getApplicationContext(), md5, crc, headerName, goodName,
+                                    countryCodeEnum.toString(), mAppData, mGlobalPrefs);
+                            String gameDataDirName1 = gamePrefs.getGameDataDirName();
+                            gamePrefs.useAlternateGameDataDir();
+                            String gameDataDirName2 = gamePrefs.getGameDataDirName();
+
+                            GameDownloadItem downloadItem = new GameDownloadItem(gameDataDirName1, gameDataDirName2, goodName, headerName);
+                            downloadItems.add(downloadItem);
+                        }
+                    }
+                }
+            } else {
+                GamePrefs gamePrefs = new GamePrefs(getApplicationContext(), mRomMd5, mRomCrc, mRomHeaderName, mRomGoodName,
+                        CountryCode.getCountryCode(mRomCountryCode).toString(), mAppData, mGlobalPrefs);
+                String gameDataDirName1 = gamePrefs.getGameDataDirName();
+                gamePrefs.useAlternateGameDataDir();
+                String gameDataDirName2 = gamePrefs.getGameDataDirName();
+
+                GameDownloadItem downloadItem = new GameDownloadItem(gameDataDirName1, gameDataDirName2, mRomGoodName, mRomHeaderName);
+                downloadItems.add(downloadItem);
+            }
+
+            if (GoogleSignIn.hasPermissions(account, driveFileScope, emailScope) && (singleGame || allData)) {
                 DriveServiceHelper driveServiceHelper = new DriveServiceHelper(
                     DriveServiceHelper.getGoogleDriveService(getApplicationContext(), account, getString(R.string.app_name_pro)));
 
                 // Copy game data to external storage
                 DocumentFile destData;
                 if (mGlobalPrefs.useExternalStorge) {
-                    destData = getExternalGameFolder();
+                    destData = getExternalParentGameFolder();
                 } else {
-                    destData = getInternalGameFolder();
+                    destData = getInternalParentGameFolder();
                 }
 
                 if (destData != null) {
@@ -151,11 +237,24 @@ public class DownloadFromGoogleDriveService extends Service
                         if (gameFolder != null && gameDataDir != null && !TextUtils.isEmpty(gameDataDir.getName())) {
                             List<GoogleDriveFileHolder> files = driveServiceHelper.queryFiles(gameFolder.getId());
 
+                            // If no game is specified, download all files
                             for (GoogleDriveFileHolder file : files) {
                                 int maxStringLength = 30;
                                 int endIndex = Math.min(file.getName().length(), maxStringLength);
-                                mListener.GetProgressDialog().setText(file.getName().substring(0, endIndex));
-                                driveServiceHelper.downloadFolder(getApplicationContext(), gameDataDir, file);
+
+                                if (containsSimlar(downloadItems, file.getName())) {
+                                    mListener.GetProgressDialog().setText(file.getName().substring(0, endIndex));
+
+                                    // First delete the old before downloading
+                                    DocumentFile gameDataFile = gameDataDir.findFile(file.getName());
+
+                                    if (gameDataFile != null) {
+                                        FileUtil.deleteFolder(gameDataFile);
+                                    }
+
+                                    // Then actually download
+                                    driveServiceHelper.downloadFolder(getApplicationContext(), gameDataDir, file);
+                                }
 
                                 if (mbStopped) break;
                             }
@@ -224,11 +323,27 @@ public class DownloadFromGoogleDriveService extends Service
 
         mAppData = new AppData(this);
         mGlobalPrefs = new GlobalPrefs( this, mAppData );
+        mConfig = new ConfigFile(mGlobalPrefs.romInfoCacheCfg);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         mStartId = startId;
+
+        if(intent != null) {
+            Bundle extras = intent.getExtras();
+
+            if (extras == null) {
+                throw new IllegalArgumentException("Invalid parameters passed to CoreService");
+            }
+
+            mRomMd5 = extras.getString( ActivityHelper.Keys.ROM_MD5 );
+            mRomCrc = extras.getString( ActivityHelper.Keys.ROM_CRC );
+            mRomHeaderName = extras.getString( ActivityHelper.Keys.ROM_HEADER_NAME );
+            mRomGoodName = extras.getString( ActivityHelper.Keys.ROM_GOOD_NAME );
+            mRomCountryCode = extras.getByte( ActivityHelper.Keys.ROM_COUNTRY_CODE );
+
+        }
 
         // If we get killed, after returning from here, restart
         return START_STICKY;
