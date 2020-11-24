@@ -521,7 +521,7 @@ public class GalleryActivity extends AppCompatActivity implements GameSidebarAct
                 Log.i("GalleryActivity", "CoreService is running");
             }
 
-            if(mAppData.getNumberOfSuccesfulLaunchesToTryPro() > 5 && mAppData.getTimeSinceFirstStartToTryPro() > 10 && !mAppData.shouldNag()) {
+            if(mAppData.getNumberOfSuccesfulLaunchesToTryPro() > 5 && mAppData.getTimeSinceFirstStartToTryPro() > 10 && !mAppData.shouldNag() && !mAppData.isPro) {
                 if (fm.findFragmentByTag(STATE_TRY_PRO_DIALOG) == null) {
                     final TryProDialog tryProDialog = TryProDialog.newInstance();
                     tryProDialog.show(fm, STATE_TRY_PRO_DIALOG);
