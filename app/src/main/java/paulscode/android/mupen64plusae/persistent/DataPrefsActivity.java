@@ -48,6 +48,7 @@ import paulscode.android.mupen64plusae.ActivityHelper;
 import paulscode.android.mupen64plusae.DownloadFromGoogleDriveFragment;
 import paulscode.android.mupen64plusae.compat.AppCompatPreferenceActivity;
 import paulscode.android.mupen64plusae.preference.PrefUtil;
+import paulscode.android.mupen64plusae.util.CountryCode;
 import paulscode.android.mupen64plusae.util.FileUtil;
 import paulscode.android.mupen64plusae.util.LegacyFilePicker;
 import paulscode.android.mupen64plusae.util.LocaleContextWrapper;
@@ -259,7 +260,7 @@ public class DataPrefsActivity extends AppCompatPreferenceActivity implements On
 
     private void downloadFromGoogleDrive()
     {
-        mDownloadFromGoogleDriveFragment.downloadFromGoogleDrive();
+        mDownloadFromGoogleDriveFragment.downloadFromGoogleDrive(null, null, null, null, null);
     }
 
     private void signOutOffGoogleDrive()

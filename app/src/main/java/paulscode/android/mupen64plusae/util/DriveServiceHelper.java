@@ -60,7 +60,7 @@ import javax.annotation.Nullable;
  * A utility for performing read/write operations on Drive files via the REST API and opening a
  * file picker UI via Storage Access Framework.
  */
-@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "WeakerAccess", "UnusedReturnValue", "RedundantSuppression"})
 public class DriveServiceHelper {
     private final Drive mDriveService;
 
@@ -270,6 +270,23 @@ public class DriveServiceHelper {
         return result;
     }
 
+    public List<GoogleDriveFileHolder> getExistingFilesStartWith(final String fileStartsWith, final String folderId) throws IOException
+    {
+        List<GoogleDriveFileHolder> result = new ArrayList<>();
+
+        List<GoogleDriveFileHolder> files = queryFiles(folderId);
+
+        if (files.size() > 0) {
+            for ( GoogleDriveFileHolder driveFile : files) {
+                if (driveFile.getName().startsWith(fileStartsWith) && !driveFile.isDirectory()) {
+                    result.add(driveFile);
+                }
+            }
+        }
+
+        return result;
+    }
+
     public GoogleDriveFileHolder createFolderIfNotExist(final String folderName, @Nullable final String parentFolderId) throws IOException
     {
         GoogleDriveFileHolder foundFolder = getExistingFolder(folderName, parentFolderId);
@@ -369,7 +386,7 @@ public class DriveServiceHelper {
             if (file != null) {
                 parcelFileDescriptor = context.getContentResolver().openFileDescriptor(file.getUri(), "r");
             }
-        } catch (java.lang.IllegalArgumentException e) {
+        } catch (java.lang.IllegalArgumentException|java.lang.IllegalStateException e) {
             e.printStackTrace();
             Log.e(TAG, "Unable to save data to google drive");
         }
