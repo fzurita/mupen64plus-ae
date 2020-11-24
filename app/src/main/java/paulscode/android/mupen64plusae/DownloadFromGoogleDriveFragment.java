@@ -35,6 +35,7 @@ import paulscode.android.mupen64plusae.dialog.ProgressDialog;
 import paulscode.android.mupen64plusae.task.DownloadFromGoogleDriveService;
 import paulscode.android.mupen64plusae.task.DownloadFromGoogleDriveService.DownloadFilesListener;
 import paulscode.android.mupen64plusae.task.DownloadFromGoogleDriveService.LocalBinder;
+import paulscode.android.mupen64plusae.util.CountryCode;
 
 @SuppressWarnings({"unused", "WeakerAccess", "RedundantSuppression"})
 public class DownloadFromGoogleDriveFragment extends Fragment implements DownloadFilesListener
@@ -54,6 +55,12 @@ public class DownloadFromGoogleDriveFragment extends Fragment implements Downloa
     private ServiceConnection mServiceConnection;
     
     private boolean mInProgress = false;
+
+    String mRomMd5;
+    String mRomCrc;
+    String mRomHeaderName;
+    String mRomGoodName;
+    CountryCode mRomCountryCode;
 
     // this method is only called once for this fragment
     @Override
@@ -135,8 +142,14 @@ public class DownloadFromGoogleDriveFragment extends Fragment implements Downloa
         return mProgress;
     }
 
-    public void downloadFromGoogleDrive()
+    public void downloadFromGoogleDrive(String romMd5, String romCrc, String romHeaderName, String romGoodName,  CountryCode romCountryCode)
     {
+        mRomMd5 = romMd5;
+        mRomCrc = romCrc;
+        mRomHeaderName = romHeaderName;
+        mRomGoodName = romGoodName;
+        mRomCountryCode = romCountryCode;
+
         try {
             actuallyDownloadFiles(requireActivity());
         } catch (java.lang.IllegalStateException e) {
@@ -176,7 +189,8 @@ public class DownloadFromGoogleDriveFragment extends Fragment implements Downloa
         };
 
         // Asynchronously copy data to SD
-        ActivityHelper.startDownloadFromGoogleDriveService(activity.getApplicationContext(), mServiceConnection);
+        ActivityHelper.startDownloadFromGoogleDriveService(activity.getApplicationContext(),
+                mServiceConnection, mRomMd5, mRomCrc, mRomHeaderName, mRomGoodName, mRomCountryCode);
     }
     
     public boolean IsInProgress()
