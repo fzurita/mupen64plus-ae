@@ -270,6 +270,23 @@ public class DriveServiceHelper {
         return result;
     }
 
+    public List<GoogleDriveFileHolder> getExistingFilesStartWith(final String fileStartsWith, final String folderId) throws IOException
+    {
+        List<GoogleDriveFileHolder> result = new ArrayList<>();
+
+        List<GoogleDriveFileHolder> files = queryFiles(folderId);
+
+        if (files.size() > 0) {
+            for ( GoogleDriveFileHolder driveFile : files) {
+                if (driveFile.getName().startsWith(fileStartsWith) && !driveFile.isDirectory()) {
+                    result.add(driveFile);
+                }
+            }
+        }
+
+        return result;
+    }
+
     public GoogleDriveFileHolder createFolderIfNotExist(final String folderName, @Nullable final String parentFolderId) throws IOException
     {
         GoogleDriveFileHolder foundFolder = getExistingFolder(folderName, parentFolderId);
