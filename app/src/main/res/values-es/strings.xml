@@ -647,6 +647,7 @@
     <string name="netplay_hostPort1">Port 1:</string>
     <string name="netplay_hostPort2">Port 2:</string>
     <string name="netplay_connect">Conectar</string>
+    <string name="netplay_serverProOnly">El servidor de netplay solo funciona con la version Pro.</string>
 	
     <!-- Google Drive Sync -->
     <string name="exportGoogleDriveService_exportNotificationTitle">Guardando datos en Google Drive</string>
